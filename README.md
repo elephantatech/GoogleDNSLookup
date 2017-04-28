@@ -1,20 +1,13 @@
 # GoogleDNSLookup
 Python application to lookup Google's Recursive DNS servers ( 8.8.8.8 and 8.8.4.4) via the http://dns.google.com api connection.
 
+## output format
 The tool outputs record Answer with the Name, type, TTL and data for example query for A record for google.com will give you the following:
 
 Name: google.com  
 Type: A  
 TTL: 255  
 Data: 172.217.9.78  
-
-## output format
-The tool outputs record Answer with the Name, type, TTL and data for example query for A record for google.com will give you the following:
-
-Name: google.com
-Type: A
-TTL: 255
-Data: 172.217.9.78
 
 the format it will show up as
 
