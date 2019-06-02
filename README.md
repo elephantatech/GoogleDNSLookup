@@ -21,8 +21,8 @@ for more than one it will list it out each answer from the query with the same f
     
 
 ## Prerequisites
-- Python (v2.7 tested but should work with v3)
-- requests library from pip or app store
+- Python (v3.7 tested)
+- requests library from pip or app store (see requirements.txt)
 - Internet access
 
 ## Usage

@@ -2,22 +2,29 @@
 This is a CLI application that queries google DNS via REST api on https://dns.google.com/
 Check https://github.com/elephantatech/GoogleDNSLookup/ for details
 @Author: elephantatech
-@DateUpdated: 28th April 2017
+@DateUpdated: 29th May 2019
 @prerequisites: python and python requests lib
 """
 # importing libs
 import argparse
 import json
-import requests
-
+from requests import get
 # get arguments
-parser = argparse.ArgumentParser(prog='GoogleDNSLookup',description='Google dns lookup')
-parser.add_argument('-n','--name', help='domain name or zone name for the lookup',required=True)
-parser.add_argument('-t','--recordtype', help='Type of record you want to find',required=False)
+parser = argparse.ArgumentParser(
+    prog='GoogleDNSLookup',description='Google dns lookup'
+    )
+parser.add_argument(
+    '-n','--name', 
+    help='domain name or zone name for the lookup',required=True
+    )
+parser.add_argument(
+    '-t','--recordtype', 
+    help='Type of record you want to find',required=False
+    )
 args = parser.parse_args()
 
 
-def gettype(querytype):
+def gettype(resourcetype):
         """
         get the type of DNS record looking up with a number value.
         """
@@ -104,29 +111,45 @@ def gettype(querytype):
         255:'ANY',
         257:'CAA'
         }
-        return dnsrecordtypes.get(querytype, querytype)
+        return dnsrecordtypes.get(resourcetype, resourcetype)
 
 def lookup(domainlookup, typenumber):
         """
-        google dns zone lookup function to go to the internet to get the infromation
+        google dns zone lookup function to go to the internet 
+        to get the infromation
         """
-        dnslookup='https://dns.google.com/resolve?name='+domainlookup+'&type='+typenumber
-        # make the request
-        r = requests.get(dnslookup)
+        url='https://dns.google.com/resolve?'
+        
+        params = {"name":domainlookup, "type":typenumber}
+        # make the requests
+        r = get(url, params=params)
         #print r.status_code
-        print r.headers['date']
+        print(r.headers['date'])
         parsed_json = json.loads(r.content)
-        #print parsed_json
-        #question=parsed_json['Question']
-        #print question[0]
 
         try:
             answer=parsed_json['Answer']
-            print("Name, Type, TTL, Data")
-            for items in answer:
-                print items['name']+", "+str(gettype(items['type']))+", "+str(items['TTL'])+", "+str(items['data'])
-        except KeyError:
-            print("Unable to get Answer")
+            updatedanswer = []
+            for line in answer:
+                line['type'] = gettype(line['type'])
+                updatedanswer.append(line)
+            return updatedanswer
+        except KeyError as err:
+            return err
+
+def print_answer(answer):
+    """
+    print the answer from google DNS lookup in CSV format
+    """
+    if isinstance(answer, list):
+        print("Name, Type, TTL, Resource Data")
+        for lines in answer:
+            answer_line = ""
+            for k, v in lines.items():
+                answer_line += f'{v}, '
+            print(answer_line[:-2])
+    else:
+        print(answer)
 
 def main():
     """
@@ -134,9 +157,12 @@ def main():
     """
     #print args
     if args.recordtype == None:
-        lookup(args.name,'ANY')
+        result = lookup(args.name,'ANY')
     else:
-        lookup(args.name,args.recordtype)
+        result = lookup(args.name,args.recordtype)
+
+    print_answer(result)
+    
     
 if __name__ == "__main__":
     main()
