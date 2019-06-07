@@ -10,18 +10,7 @@ import argparse
 import json
 from requests import get
 # get arguments
-parser = argparse.ArgumentParser(
-    prog='GoogleDNSLookup',description='Google dns lookup'
-    )
-parser.add_argument(
-    '-n','--name', 
-    help='domain name or zone name for the lookup',required=True
-    )
-parser.add_argument(
-    '-t','--recordtype', 
-    help='Type of record you want to find',required=False
-    )
-args = parser.parse_args()
+
 
 
 def gettype(resourcetype):
@@ -30,11 +19,7 @@ def gettype(resourcetype):
         """
         
         with open("recordtypes.json", "r") as f:
-            json_data=json.load(f)
-
-        dnsrecordtypes = {}
-        for k, v in json_data.items():
-            dnsrecordtypes[int(k)] = v
+            dnsrecordtypes=json.load(f) # get the record types json file
 
         return dnsrecordtypes.get(resourcetype, resourcetype)
 
@@ -56,7 +41,7 @@ def lookup(domainlookup, typenumber):
             answer=parsed_json['Answer']
             updatedanswer = []
             for line in answer:
-                line['type'] = gettype(line['type'])
+                line['type'] = gettype(str(line['type']))
                 updatedanswer.append(line)
             return updatedanswer
         except KeyError as err:
@@ -90,4 +75,16 @@ def main():
     
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+    prog='GoogleDNSLookup',description='Google dns lookup'
+    )
+    parser.add_argument(
+        '-n','--name', 
+        help='domain name or zone name for the lookup',required=True
+        )
+    parser.add_argument(
+        '-t','--recordtype', 
+        help='Type of record you want to find',required=False
+        )
+    args = parser.parse_args()
     main()
