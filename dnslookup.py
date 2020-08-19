@@ -8,18 +8,27 @@ Check https://github.com/elephantatech/GoogleDNSLookup/ for details
 # importing libs
 import argparse
 import json
-from requests import get
+import logging
+from requests import get, exceptions as webexception
 # get arguments
 
+# setup logging
+logging.basicConfig(filename="errors.log",
+                    level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
 def gettype(resourcetype):
         """
         get the type of DNS record looking up with a number value.
         """
-        
-        with open("recordtypes.json", "r") as f:
-            dnsrecordtypes=json.load(f) # get the record types json file
+        try:
+            # get the record types json file
+            with open("recordtypes.json", "r") as f:
+                dnsrecordtypes=json.load(f)
+        except Exception as e:
+            logging.exception("Error loading recordtypes.json file",e,exc_info=True)
 
         return dnsrecordtypes.get(resourcetype, resourcetype)
 
@@ -32,7 +41,13 @@ def lookup(domainlookup, typenumber):
         
         params = {"name":domainlookup, "type":typenumber}
         # make the requests
-        r = get(url, params=params)
+        try:
+            r = get(url, params=params)
+        except webexception as err:
+            logging.exception("Error getting data from Google API", err, exc_info=True)
+            return err
+        except Exception as err:
+            logging.exception("Error with API request", err, exc_info=True)
         #print r.status_code
         print(r.headers['date'])
         parsed_json = json.loads(r.content)
@@ -45,6 +60,10 @@ def lookup(domainlookup, typenumber):
                 updatedanswer.append(line)
             return updatedanswer
         except KeyError as err:
+            logging.exception("Key value not found in the list", err, exc_info=True)
+            return err
+        except Exception as err:
+            logging.exception("Error getting item type from list", err, exc_info=True)
             return err
 
 def print_answer(answer):
